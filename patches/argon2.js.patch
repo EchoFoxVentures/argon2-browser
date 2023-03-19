@@ -1,0 +1,38 @@
+--- patches/argon2-prepatch.js	2023-03-18 17:02:23
++++ dist/argon2.js	2023-03-18 17:04:09
+@@ -297,32 +297,9 @@
+                 });
+         }
+         function instantiateAsync(binary, binaryFile, imports, callback) {
+-            if (
+-                !binary &&
+-                typeof WebAssembly.instantiateStreaming == 'function' &&
+-                !isDataURI(binaryFile) &&
+-                typeof fetch == 'function'
+-            ) {
+-                return fetch(binaryFile, { credentials: 'same-origin' }).then(
+-                    function (response) {
+-                        var result = WebAssembly.instantiateStreaming(
+-                            response,
+-                            imports
+-                        );
+-                        return result.then(callback, function (reason) {
+-                            err('wasm streaming compile failed: ' + reason);
+-                            err('falling back to ArrayBuffer instantiation');
+-                            return instantiateArrayBuffer(
+-                                binaryFile,
+-                                imports,
+-                                callback
+-                            );
+-                        });
+-                    }
+-                );
+-            } else {
+-                return instantiateArrayBuffer(binaryFile, imports, callback);
+-            }
++            return WebAssembly.instantiate(binary, imports).then((instance) =>
++                callback({ instance })
++            );
+         }
+         function createWasm() {
+             var info = { a: wasmImports };
