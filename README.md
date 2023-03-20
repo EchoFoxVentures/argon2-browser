@@ -11,15 +11,15 @@ Argon2 is a password-hashing function, the winner of Password Hashing Competitio
 ## The numbers
 
 |                   | Time, ms (lower is better) |
-|-------------------|----------------------------|
+| ----------------- | -------------------------- |
 | Chrome WASM       | 225                        |
 | Chrome WASM+SIMD  | 119                        |
 | Firefox WASM      | 195                        |
 | Firefox WASM+SIMD | 135                        |
 | Safari WASM       | 174                        |
-| Native -O3 SSE    |  15                        |
-| Native -O3        |  42                        |
-| Native -O1        |  55                        |
+| Native -O3 SSE    | 15                         |
+| Native -O3        | 42                         |
+| Native -O1        | 55                         |
 | Native -O0        | 395                        |
 
 ## Test Environment
@@ -27,26 +27,27 @@ Argon2 is a password-hashing function, the winner of Password Hashing Competitio
 Environment used to get the numbers above:
 
 Algorithm parameters (`-d -t 100 -m 10 -p 1`):
-- iterations: 100
-- memory: 1MiB (1024 KiB)
-- hash length: 32
-- parallelism: 1
-- argon2d
+
+-   iterations: 100
+-   memory: 1MiB (1024 KiB)
+-   hash length: 32
+-   parallelism: 1
+-   argon2d
 
 Environment:
 
-- MacBook pro 2020, Intel Core i7, 2.3GHz (x64), macOS 10.14.6 (18G95)
-- Chrome 85.0.4183.83 (Official Build)
-- Firefox 80.0.1
-- Safari 13.1.2 (15609.3.5.1.3)
-- native argon2 compiled from https://github.com/P-H-C/phc-winner-argon2 @440ceb9
+-   MacBook pro 2020, Intel Core i7, 2.3GHz (x64), macOS 10.14.6 (18G95)
+-   Chrome 85.0.4183.83 (Official Build)
+-   Firefox 80.0.1
+-   Safari 13.1.2 (15609.3.5.1.3)
+-   native argon2 compiled from https://github.com/P-H-C/phc-winner-argon2 @440ceb9
 
 ## Code size
 
 `ll -h dist`
 
 | File        | Code size, kB |
-|-------------|---------------|
+| ----------- | ------------- |
 | argon2.js   | 14            |
 | argon2.wasm | 25            |
 
@@ -71,35 +72,43 @@ To use the SIMD version, load `argon2-simd.wasm` instead of `argon2.wasm`.
 ## JS Library
 
 The library can be installed from npm:
+
 ```bash
 npm install argon2-browser
 ```
 
 Then add this script to your HTML or use your favorite bundler:
+
 ```html
 <script src="node_modules/argon2-browser/dist/argon2.min.js"></script>
 ```
 
 Alternatively, you can use the bundled version, this way you can include just one script:
+
 ```html
 <script src="node_modules/argon2-browser/dist/argon2-bundled.min.js"></script>
 ```
 
 Calculate the hash:
+
 ```javascript
-argon2.hash({ pass: 'password', salt: 'somesalt' })
-    .then(h => console.log(h.hash, h.hashHex, h.encoded))
-    .catch(e => console.error(e.message, e.code))
+argon2
+    .hash({ pass: 'password', salt: 'somesalt' })
+    .then((h) => console.log(h.hash, h.hashHex, h.encoded))
+    .catch((e) => console.error(e.message, e.code));
 ```
 
 Verify the encoded hash (if you need it):
+
 ```javascript
-argon2.verify({ pass: 'password', encoded: 'enc-hash' })
+argon2
+    .verify({ pass: 'password', encoded: 'enc-hash' })
     .then(() => console.log('OK'))
-    .catch(e => console.error(e.message, e.code))
+    .catch((e) => console.error(e.message, e.code));
 ```
 
 Other parameters:
+
 ```javascript
 argon2.hash({
     // required
@@ -152,7 +161,7 @@ argon2.verify({
 
 ## Usage
 
-You can use this module in several ways: 
+You can use this module in several ways:
 
 1. write the WASM loader manually, for example, if you need more control over memory ([example](docs/js/calc.js));
 2. bundle it with WebPack or another bundler ([example](examples/webpack));
@@ -161,8 +170,8 @@ You can use this module in several ways:
 
 ## Bundlers
 
-- WebPack: [examples/webpack](https://github.com/antelle/argon2-browser/tree/master/examples/webpack)
-- create-react-app: [examples/react](https://github.com/antelle/argon2-browser/tree/master/examples/react). Derived from [#38](https://github.com/antelle/argon2-browser/issues/38#issuecomment-749690581)
+-   WebPack: [examples/webpack](https://github.com/antelle/argon2-browser/tree/master/examples/webpack)
+-   create-react-app: [examples/react](https://github.com/antelle/argon2-browser/tree/master/examples/react). Derived from [#38](https://github.com/antelle/argon2-browser/issues/38#issuecomment-749690581)
 
 ## Node.js support
 
@@ -176,13 +185,26 @@ It is! [KeeWeb](https://github.com/keeweb/keeweb) (web-based password manager) i
 ## Building
 
 You can build everything with
+
 ```bash
 ./build.sh
 ```
 
 Prerequisites:
-- emscripten with WebAssembly support ([howto](http://webassembly.org/getting-started/developers-guide/))
-- CMake
+
+-   emscripten with WebAssembly support ([howto](http://webassembly.org/getting-started/developers-guide/))
+-   CMake
+
+## Modifications
+
+This package was modified to be compatible (in theory) with Cloudflare Workers. Changes were made in the loader library (`lib/argon2.js`) and patches are committed against the generated loader from the WASM build (`dist/argon2.js`).
+
+### To update custom patches
+
+-   `dist/argon2.js.orig` contains the unpatched source, make necessary modifications
+-   From project root, run `diff -u dist/argon2.js.orig dist/argon2.js > patches/argon2.js.patch`
+-   Run the build process, check `dist/argon2.js` that the patch was applied successfully
+-   Commit
 
 ## License
 
